@@ -55,7 +55,7 @@ bool timBegin(uint8_t ch)
   bool ret = false;
   tim_t *p_tim = &tim_tbl[ch];
 
-  TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
 
   switch(ch)
@@ -65,27 +65,26 @@ bool timBegin(uint8_t ch)
       p_tim->func_cb = NULL;
 
       htim3.Instance = TIM3;
-      htim3.Init.Prescaler = 71;
+      htim3.Init.Prescaler = 72-1;
       htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
       htim3.Init.Period = 65535;
       htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-      htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+      htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
       if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
       {
         Error_Handler();
       }
-      sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
-       sSlaveConfig.InputTrigger = TIM_TS_ITR0;
-       if (HAL_TIM_SlaveConfigSynchro(&htim3, &sSlaveConfig) != HAL_OK)
-       {
-         Error_Handler();
-       }
-       sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-       sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-       if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-       {
-         Error_Handler();
-       }
+      sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+      if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+      {
+        Error_Handler();
+      }
+      sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+      sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+      if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+      {
+        Error_Handler();
+      }
       if (HAL_TIM_Base_Start_IT(&htim3) == HAL_OK)
       {
         p_tim->is_start = true;

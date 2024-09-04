@@ -1,9 +1,0 @@
-../src/bsp/bsp.c:20:6:HAL_SYSTICK_Callback	4	static
-../src/bsp/bsp.c:25:9:clockCyclesToMicros	16	static
-../src/bsp/bsp.c:31:9:clockCyclesTo10thMicros	16	static
-../src/bsp/bsp.c:36:10:clockMicrosToCycles	16	static
-../src/bsp/bsp.c:41:6:delay	16	static
-../src/bsp/bsp.c:47:10:millis	8	static
-../src/bsp/bsp.c:54:10:micros	4	static
-../src/bsp/bsp.c:66:6:delayMicroseconds	24	static
-../src/bsp/bsp.c:72:5:__io_putchar	16	static

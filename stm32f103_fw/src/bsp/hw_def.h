@@ -12,7 +12,7 @@
 //#define _USE_HW_USB
 
 #define _USE_HW_TIM
-#define      HW_TIM_MAX_CH          2
+#define      HW_TIM_MAX_CH          1
 
 #define _USE_HW_GPIO
 #define      HW_GPIO_MAX_CH         1

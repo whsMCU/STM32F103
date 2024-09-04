@@ -23,6 +23,8 @@
 void hwInit(void);
 void SystemClock_Config(void);
 
+uint32_t pre_time = 0;
+
 int main(void)
 {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -33,14 +35,16 @@ int main(void)
 
   /* Initialize all configured peripherals */
   hwInit();
-
+  pre_time = micros();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  gpioPinToggle(LED);
-	  HAL_Delay(500);
-
+	  if(micros()-pre_time >= 500000)
+	  {
+	    pre_time = micros();
+		  gpioPinToggle(LED);
+	  }
   }
   /* USER CODE END 3 */
 }
