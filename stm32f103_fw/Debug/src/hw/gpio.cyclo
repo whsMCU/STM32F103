@@ -1,0 +1,5 @@
+../src/hw/gpio.c:34:6:gpioInit	2
+../src/hw/gpio.c:66:6:gpioPinMode	11
+../src/hw/gpio.c:136:6:gpioPinWrite	3
+../src/hw/gpio.c:153:6:gpioPinRead	3
+../src/hw/gpio.c:170:6:gpioPinToggle	2

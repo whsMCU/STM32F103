@@ -1,0 +1,6 @@
+../src/hw/tim.c:44:6:tim_Init	16	static
+../src/hw/tim.c:53:6:timBegin	56	static
+../src/hw/tim.c:107:6:HAL_TIM_PeriodElapsedCallback	24	static
+../src/hw/tim.c:123:6:timAttachInterrupt	24	static
+../src/hw/tim.c:132:6:HAL_TIM_Base_MspInit	24	static
+../src/hw/tim.c:151:6:HAL_TIM_Base_MspDeInit	16	static
