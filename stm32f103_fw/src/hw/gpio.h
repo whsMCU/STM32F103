@@ -14,9 +14,7 @@
 extern "C" {
 #endif
 
-
 #ifdef _USE_HW_GPIO
-
 
 #define GPIO_MAX_CH     HW_GPIO_MAX_CH
 

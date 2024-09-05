@@ -10,7 +10,7 @@
 #define DWT_LAR_UNLOCK_VALUE 0xC5ACCE55
 
 // cycles per microsecond
-static uint32_t usTicks = 0;
+static uint32_t usTicks = 72;
 // current uptime for 1kHz systick timer. will rollover after 49 days. hopefully we won't care.
 static volatile uint32_t sysTickUptime = 0;
 static volatile uint32_t sysTickValStamp = 0;
@@ -53,14 +53,13 @@ uint32_t millis(void)
 
 uint32_t micros(void)
 {
-//	register uint32_t ms, cycle_cnt;
-//
-//	do {
-//		ms = sysTickUptime;
-//		cycle_cnt = SysTick->VAL;
-//	} while (ms != sysTickUptime);
-//	return (ms * 1000) + (usTicks * 1000 - cycle_cnt) / usTicks; //168
-	return htim3.Instance->CNT;
+	register uint32_t ms, cycle_cnt;
+
+	do {
+		ms = sysTickUptime;
+		cycle_cnt = SysTick->VAL;
+	} while (ms != sysTickUptime);
+	return (ms * 1000) + (usTicks * 1000 - cycle_cnt) / usTicks; //168
 }
 
 void delayMicroseconds(uint32_t us)

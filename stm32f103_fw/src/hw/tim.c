@@ -16,9 +16,12 @@
   *
   ******************************************************************************
   */
+#include "tim.h"
+
+#ifdef _USE_HW_TIM
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "tim.h"
+
 //#include "cli.h"
 /* USER CODE BEGIN 0 */
 typedef struct
@@ -50,7 +53,7 @@ void tim_Init(void)
   }
 }
 
-bool timBegin(uint8_t ch)
+bool tim_Begin(uint8_t ch)
 {
   bool ret = false;
   tim_t *p_tim = &tim_tbl[ch];
@@ -72,18 +75,18 @@ bool timBegin(uint8_t ch)
       htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
       if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
       {
-        Error_Handler();
+        ret = false;
       }
       sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
       if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
       {
-        Error_Handler();
+        ret = false;
       }
       sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
       sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
       if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
       {
-        Error_Handler();
+        ret = false;
       }
       if (HAL_TIM_Base_Start_IT(&htim3) == HAL_OK)
       {
@@ -191,5 +194,6 @@ void cliTimer(cli_args_t *args)
     cliPrintf("timer test\r\n");
   }
 }
+#endif
 #endif
 /* USER CODE END 1 */

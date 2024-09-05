@@ -55,15 +55,16 @@ void hwInit(void)
     rtcInit();
   #endif
 //  usbInit();
-//  uartInit();
-//  cliInit();
+  cliInit();
 //  logInit();
 //  logOpen(HW_LOG_CH, 115200);
 //  logPrintf("\r\n[ Firmware Begin... ]\r\n");
 
   tim_Init();
-  timBegin(_DEF_TIM3);
+  tim_Begin(_DEF_TIM3);
   gpioInit();
+  uartInit();
+  uartOpen(_DEF_UART1, 57600);
 //  adcInit();
 //  buttonInit();
 //  flashInit();

@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    tim.h
+  * @file    dma.h
   * @brief   This file contains all the function prototypes for
-  *          the tim.c file
+  *          the dma.c file
   ******************************************************************************
   * @attention
   *
@@ -18,32 +18,27 @@
   */
 /* USER CODE END Header */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __TIM_H__
-#define __TIM_H__
-
-#include "hw.h"
+#ifndef __DMA_H__
+#define __DMA_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef _USE_HW_TIM
 /* Includes ------------------------------------------------------------------*/
+#include "main.h"
+
+/* DMA memory to memory transfer handles -------------------------------------*/
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-extern TIM_HandleTypeDef htim3;
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-void tim_Init(void);
-bool tim_Begin(uint8_t ch);
-
-void timAttachInterrupt(uint8_t ch, void (*func)());
+void MX_DMA_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
@@ -53,7 +48,5 @@ void timAttachInterrupt(uint8_t ch, void (*func)());
 }
 #endif
 
-#endif
-
-#endif /* __TIM_H__ */
+#endif /* __DMA_H__ */
 

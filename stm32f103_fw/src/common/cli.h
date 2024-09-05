@@ -20,8 +20,6 @@
 #define CLI_LINE_BUF_MAX      HW_CLI_LINE_BUF_MAX
 
 
-
-
 typedef struct
 {
   uint16_t   argc;

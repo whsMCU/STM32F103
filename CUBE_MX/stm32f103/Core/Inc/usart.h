@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    tim.h
+  * @file    usart.h
   * @brief   This file contains all the function prototypes for
-  *          the tim.c file
+  *          the usart.c file
   ******************************************************************************
   * @attention
   *
@@ -18,32 +18,27 @@
   */
 /* USER CODE END Header */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __TIM_H__
-#define __TIM_H__
-
-#include "hw.h"
+#ifndef __USART_H__
+#define __USART_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef _USE_HW_TIM
 /* Includes ------------------------------------------------------------------*/
+#include "main.h"
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
-extern TIM_HandleTypeDef htim3;
+extern UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
 
-void tim_Init(void);
-bool tim_Begin(uint8_t ch);
-
-void timAttachInterrupt(uint8_t ch, void (*func)());
+void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
@@ -53,7 +48,5 @@ void timAttachInterrupt(uint8_t ch, void (*func)());
 }
 #endif
 
-#endif
-
-#endif /* __TIM_H__ */
+#endif /* __USART_H__ */
 

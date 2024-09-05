@@ -7,8 +7,8 @@
 
 
 #include "gpio.h"
-#include "cli.h"
 
+#ifdef _USE_HW_GPIO
 
 typedef struct
 {
@@ -177,10 +177,6 @@ void gpioPinToggle(uint8_t ch)
   HAL_GPIO_TogglePin(gpio_tbl[ch].port, gpio_tbl[ch].pin);
 }
 
-
-
-
-
 #ifdef _USE_HW_CLI
 void cliGpio(cli_args_t *args)
 {
@@ -237,4 +233,6 @@ void cliGpio(cli_args_t *args)
     cliPrintf("gpio write ch[0~%d] 0:1\r\n", GPIO_MAX_CH-1);
   }
 }
+#endif
+
 #endif
