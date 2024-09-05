@@ -45,7 +45,6 @@ bool uartOpen(uint8_t ch, uint32_t baud)
   switch(ch)
   {
     case _DEF_UART1:
-      is_open[ch] = true;
       huart1.Instance = USART1;
       huart1.Init.BaudRate = baud;
       huart1.Init.WordLength = UART_WORDLENGTH_8B;
@@ -55,9 +54,7 @@ bool uartOpen(uint8_t ch, uint32_t baud)
       huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
       huart1.Init.OverSampling = UART_OVERSAMPLING_16;
 
-      HAL_UART_DeInit(&huart1);
-
-      qbufferCreate(&qbuffer[ch], &rx_buf[0], 256);
+      qbufferCreate(&qbuffer[ch], (uint8_t *)&rx_buf[0], 256);
 
       __HAL_RCC_DMA1_CLK_ENABLE();
       HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
@@ -66,7 +63,6 @@ bool uartOpen(uint8_t ch, uint32_t baud)
       if (HAL_UART_Init(&huart1) != HAL_OK)
       {
         ret = false;
-        Error_Handler();
       }else
       {
         ret = true;
@@ -76,7 +72,6 @@ bool uartOpen(uint8_t ch, uint32_t baud)
         {
           ret = false;
         }
-
         qbuffer[ch].in  = qbuffer[ch].len - hdma_usart1_rx.Instance->CNDTR;
         qbuffer[ch].out = qbuffer[ch].in;
       }
@@ -119,7 +114,7 @@ uint8_t uartRead(uint8_t ch)
   {
     case _DEF_UART1:
       //ret = cdcRead();
-      qbufferRead(&qbuffer[_DEF_UART2], &ret, 1);
+      qbufferRead(&qbuffer[ch], &ret, 1);
       break;
 
     case _DEF_UART2:
@@ -212,9 +207,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 #if 0
   if (huart->Instance == USART1)
   {
-    qbufferWrite(&qbuffer[_DEF_UART2], &rx_data[_DEF_UART2], 1);
+    qbufferWrite(&qbuffer[_DEF_UART1], &rx_buf, 1);
 
-    HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_data[_DEF_UART2], 1);
+    HAL_UART_Receive_IT(&huart1, (uint8_t *)&rx_buf, 1);
   }
 #endif
 }
@@ -258,11 +253,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_usart1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_usart1_rx.Init.Mode = DMA_CIRCULAR;
-    hdma_usart1_rx.Init.Priority = DMA_PRIORITY_LOW;
-    if (HAL_DMA_Init(&hdma_usart1_rx) != HAL_OK)
-    {
-      Error_Handler();
-    }
+    hdma_usart1_rx.Init.Priority = DMA_PRIORITY_HIGH;
+
+    HAL_DMA_Init(&hdma_usart1_rx);
 
     __HAL_LINKDMA(uartHandle,hdmarx,hdma_usart1_rx);
 
