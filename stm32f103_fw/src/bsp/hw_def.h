@@ -10,6 +10,7 @@
 
 //#define _USE_HW_CDC
 //#define _USE_HW_USB
+#define _USE_HW_FLASH
 
 #define _USE_HW_TIM
 #define      HW_TIM_MAX_CH          1
@@ -22,7 +23,7 @@
 //#define      HW_BUTTON_OBJ_USE      1
 
 #define _USE_HW_UART
-#define      HW_UART_MAX_CH         1
+#define      HW_UART_MAX_CH         2
 //#define      HW_UART_CH_SWD         _DEF_USB
 //#define      HW_UART_CH_CLI         _DEF_USB
 

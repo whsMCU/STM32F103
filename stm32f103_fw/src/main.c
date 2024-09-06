@@ -46,13 +46,14 @@ int main(void)
 		  gpioPinToggle(LED);
 	  }
 
-    if (uartAvailable(_DEF_UART1) > 0)
-    {
-      uint8_t rx_data;
-      rx_data = uartRead(_DEF_UART1);
-
-      uartPrintf(_DEF_UART1, "Rx : 0x%X\n", rx_data);
-    }
+//    if (uartAvailable(_DEF_UART1) > 0)
+//    {
+//      uint8_t rx_data;
+//      rx_data = uartRead(_DEF_UART1);
+//
+//      uartPrintf(_DEF_UART1, "Rx : 0x%X\r\n", rx_data);
+//    }
+    cliMain();
   }
   /* USER CODE END 3 */
 }
@@ -72,7 +73,7 @@ void hwInit(void)
   tim_Begin(_DEF_TIM3);
   gpioInit();
   uartInit();
-  uartOpen(_DEF_UART1, 57600);
+//  uartOpen(_DEF_UART1, 57600);
 //  adcInit();
 //  buttonInit();
 //  flashInit();
@@ -85,7 +86,7 @@ void hwInit(void)
 //    fatfsInit();
 //  }
 
-//  cliOpen(_DEF_USB, 115200);
+  cliOpen(_DEF_UART1, 115200);
 //  uartOpen(_DEF_UART3, 115200);
 }
 
