@@ -23,7 +23,7 @@ typedef struct
   uint32_t tseg2;
 } can_baud_cfg_t;
 
-const can_baud_cfg_t can_baud_cfg_80m_normal[] =
+const can_baud_cfg_t can_baud_cfg[] =
     {
         {20, 1, 15, 2}, // 100K, 87.5%
         {16, 1, 15, 2}, // 125K, 87.5%
@@ -32,10 +32,10 @@ const can_baud_cfg_t can_baud_cfg_80m_normal[] =
         {2,  1, 15, 2}, // 1M,   87.5%
     };
 
-const can_baud_cfg_t *p_baud_data   = can_baud_cfg_80m_normal;
+const can_baud_cfg_t *p_baud   = can_baud_cfg;
 
 
-const uint32_t dlc_len_tbl[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64};
+const uint32_t dlc_len_tbl[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
 
 const uint32_t dlc_tbl[] =
     {
@@ -64,30 +64,25 @@ typedef struct
 
   uint32_t err_code;
   uint8_t  state;
-  uint32_t recovery_cnt;
-
-  uint32_t q_rx_full_cnt;
-  uint32_t q_tx_full_cnt;
-  uint32_t fifo_full_cnt;
-  uint32_t fifo_lost_cnt;
 
   uint32_t fifo_idx;
-  uint32_t enable_int;
-  uint32_t interrupt_line;
   CanMode_t  mode;
-  CanFrame_t frame;
   CanBaud_t  baud;
-  CanBaud_t  baud_data;
 
   uint32_t rx_cnt;
   uint32_t tx_cnt;
 
-  CAN_HandleTypeDef hcan;
+  CAN_HandleTypeDef *hcan;
   CAN_FilterTypeDef hcan_filter;
-  bool (*handler)(uint8_t ch, CanEvent_t evt, can_msg_t *arg);
 
   qbuffer_t q_msg;
   can_msg_t can_msg[CAN_MSG_RX_BUF_MAX];
+
+  CAN_TxHeaderTypeDef   TxHeader;
+  CAN_RxHeaderTypeDef   RxHeader;
+  uint8_t               TxData[8];
+  uint8_t               RxData[8];
+  uint32_t              TxMailbox;
 } can_tbl_t;
 
 static can_tbl_t can_tbl[CAN_MAX_CH];
@@ -104,11 +99,6 @@ static bool is_lock = false;
 static void cliCan(cli_args_t *args);
 #endif
 
-static void canErrUpdate(uint8_t ch);
-
-
-
-
 
 bool canInit(void)
 {
@@ -116,19 +106,11 @@ bool canInit(void)
 
   uint8_t i;
 
-
   for(i = 0; i < CAN_MAX_CH; i++)
   {
     can_tbl[i].is_init  = true;
     can_tbl[i].is_open  = false;
-    can_tbl[i].err_code = CAN_ERR_NONE;
     can_tbl[i].state    = 0;
-    can_tbl[i].recovery_cnt = 0;
-
-    can_tbl[i].q_rx_full_cnt = 0;
-    can_tbl[i].q_tx_full_cnt = 0;
-    can_tbl[i].fifo_full_cnt = 0;
-    can_tbl[i].fifo_lost_cnt = 0;
 
     can_tbl[i].rx_cnt = 0;
     can_tbl[i].tx_cnt = 0;
@@ -191,49 +173,48 @@ bool canUnLock(void)
   return true;
 }
 
-bool canOpen(uint8_t ch, CanMode_t mode, CanFrame_t frame, CanBaud_t baud, CanBaud_t baud_data)
+bool canOpen(uint8_t ch, CanMode_t mode, CanBaud_t baud)
 {
   bool ret = true;
   CAN_HandleTypeDef  *p_can;
 
   if (ch >= CAN_MAX_CH) return false;
 
-  can_tbl[ch].hcan = hcan;
+  can_tbl[ch].hcan = &hcan;
 
-  p_can = &can_tbl[ch].hcan;
+  p_can = can_tbl[ch].hcan;
 
   switch(ch)
   {
     case _DEF_CAN1:
-      p_can->Instance                   = CAN1;
-      p_can->Init.Mode                  = mode_tbl[mode];
-      p_can->Init.TimeTriggeredMode   = DISABLE;
-      p_can->Init.AutoBusOff          = DISABLE;
-      p_can->Init.AutoWakeUp          = DISABLE;
-      p_can->Init.ReceiveFifoLocked   = DISABLE;
+      p_can->Instance                  = CAN1;
+      p_can->Init.Mode                 = CAN_MODE_LOOPBACK;//mode_tbl[mode];
+      p_can->Init.TimeTriggeredMode    = DISABLE;
+      p_can->Init.AutoBusOff           = DISABLE;
+      p_can->Init.AutoWakeUp           = DISABLE;
+      p_can->Init.ReceiveFifoLocked    = DISABLE;
       p_can->Init.TransmitFifoPriority = DISABLE;
-      p_can->Init.AutoRetransmission   = DISABLE;
-      p_can->Init.Prescaler           = p_baud_data[baud_data].prescaler;
-      p_can->Init.SyncJumpWidth       = p_baud_data[baud_data].sjw;
-      p_can->Init.TimeSeg1            = p_baud_data[baud_data].tseg1;
-      p_can->Init.TimeSeg2            = p_baud_data[baud_data].tseg2;
+      p_can->Init.AutoRetransmission   = ENABLE;
+      p_can->Init.Prescaler            = p_baud[baud].prescaler;
+      p_can->Init.SyncJumpWidth        = p_baud[baud].sjw;
+      p_can->Init.TimeSeg1             = p_baud[baud].tseg1;
+      p_can->Init.TimeSeg2             = p_baud[baud].tseg2;
 
 
-      can_tbl[ch].hcan_filter.FilterActivation = CAN_FILTER_ENABLE;
-      can_tbl[ch].hcan_filter.FilterBank = 18;
-      can_tbl[ch].hcan_filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
-      can_tbl[ch].hcan_filter.FilterIdHigh = 0x103<<5;
-      can_tbl[ch].hcan_filter.FilterIdLow = 0;
-      can_tbl[ch].hcan_filter.FilterMaskIdHigh = 0x103<<5;
-      can_tbl[ch].hcan_filter.FilterMaskIdLow = 0x0000;
-      can_tbl[ch].hcan_filter.FilterMode = CAN_FILTERMODE_IDMASK;
-      can_tbl[ch].hcan_filter.FilterScale = CAN_FILTERSCALE_32BIT;
-      can_tbl[ch].hcan_filter.SlaveStartFilterBank = 20;
+      can_tbl[ch].hcan_filter.FilterActivation      = CAN_FILTER_ENABLE;
+      can_tbl[ch].hcan_filter.FilterBank            = 0;
+      can_tbl[ch].hcan_filter.FilterFIFOAssignment  = CAN_FILTER_FIFO0;
+      can_tbl[ch].hcan_filter.FilterIdHigh          = 0x0000;
+      can_tbl[ch].hcan_filter.FilterIdLow           = 0x0000;
+      can_tbl[ch].hcan_filter.FilterMaskIdHigh      = 0x0000;
+      can_tbl[ch].hcan_filter.FilterMaskIdLow       = 0x0000;
+      can_tbl[ch].hcan_filter.FilterMode            = CAN_FILTERMODE_IDMASK;
+      can_tbl[ch].hcan_filter.FilterScale           = CAN_FILTERSCALE_32BIT;
+      can_tbl[ch].hcan_filter.SlaveStartFilterBank  = 14;
 
       can_tbl[ch].mode                = mode;
-      can_tbl[ch].frame               = frame;
       can_tbl[ch].baud                = baud;
-      can_tbl[ch].baud_data           = baud_data;
+      can_tbl[ch].fifo_idx            = CAN_RX_FIFO0;
 
       ret = true;
       break;
@@ -259,10 +240,12 @@ bool canOpen(uint8_t ch, CanMode_t mode, CanFrame_t frame, CanBaud_t baud, CanBa
     return false;
   }
 
-  HAL_CAN_ActivateNotification(p_can, CAN_IT_TX_MAILBOX_EMPTY | CAN_IT_RX_FIFO0_MSG_PENDING |
-                               CAN_IT_BUSOFF);
-
   if (HAL_CAN_Start(p_can) != HAL_OK)
+  {
+    return false;
+  }
+
+  if (HAL_CAN_ActivateNotification(p_can, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
   {
     return false;
   }
@@ -290,8 +273,6 @@ bool canGetInfo(uint8_t ch, can_info_t *p_info)
   if(ch >= CAN_MAX_CH) return false;
 
   p_info->baud = can_tbl[ch].baud;
-  p_info->baud_data = can_tbl[ch].baud_data;
-  p_info->frame = can_tbl[ch].frame;
   p_info->mode = can_tbl[ch].mode;
 
   return true;
@@ -301,21 +282,7 @@ CanDlc_t canGetDlc(uint8_t length)
 {
   CanDlc_t ret;
 
-  if (length >= 64)
-    ret = CAN_DLC_64;
-  else if (length >= 48)
-    ret = CAN_DLC_48;
-  else if (length >= 32)
-    ret = CAN_DLC_32;
-  else if (length >= 24)
-    ret = CAN_DLC_24;
-  else if (length >= 20)
-    ret = CAN_DLC_20;
-  else if (length >= 16)
-    ret = CAN_DLC_16;
-  else if (length >= 12)
-    ret = CAN_DLC_12;
-  else if (length >= 8)
+  if (length >= 8)
     ret = CAN_DLC_8;
   else
     ret = (CanDlc_t)length;
@@ -335,31 +302,26 @@ uint32_t canMsgAvailable(uint8_t ch)
   return qbufferAvailable(&can_tbl[ch].q_msg);
 }
 
-bool canMsgInit(can_msg_t *p_msg, CanFrame_t frame, CanIdType_t  id_type, CanDlc_t dlc)
+bool canMsgInit(can_msg_t *p_msg, CanIdType_t id_type, CanDlc_t dlc)
 {
-  p_msg->frame   = frame;
   p_msg->id_type = id_type;
   p_msg->dlc     = dlc;
   p_msg->length  = dlc_len_tbl[dlc];
   return true;
 }
 
-bool canMsgWrite(uint8_t ch, can_msg_t *p_msg, uint32_t timeout)
+bool canMsgWrite(uint8_t ch, can_msg_t *p_msg)
 {
   CAN_HandleTypeDef  *p_can;
   CAN_TxHeaderTypeDef tx_header;
-  uint32_t pre_time;
   bool ret = true;
 
 
   if(ch > CAN_MAX_CH) return false;
 
   if (can_tbl[ch].is_open != true) return false;
-  if (can_tbl[ch].err_code & CAN_ERR_PASSIVE) return false;
-  if (can_tbl[ch].err_code & CAN_ERR_BUS_OFF) return false;
 
-
-  p_can = &can_tbl[ch].hcan;
+  p_can = can_tbl[ch].hcan;
 
   switch(p_msg->id_type)
   {
@@ -371,10 +333,20 @@ bool canMsgWrite(uint8_t ch, can_msg_t *p_msg, uint32_t timeout)
       tx_header.IDE = CAN_ID_EXT;
       break;
   }
+  tx_header.StdId              = 0x321;
+  //tx_header.ExtId              = 0x01;
+  tx_header.RTR                = CAN_RTR_DATA;
+  tx_header.DLC                = dlc_tbl[p_msg->dlc];
+  tx_header.TransmitGlobalTime = DISABLE;
 
-  tx_header.IDE          = p_msg->id;
-  tx_header.RTR          = CAN_RTR_DATA;
-  tx_header.DLC          = dlc_tbl[p_msg->dlc];
+  can_tbl[ch].TxData[0] = 0;
+  can_tbl[ch].TxData[1] = 5;
+
+  if (HAL_CAN_AddTxMessage(p_can, &tx_header, can_tbl[ch].TxData, &can_tbl[ch].TxMailbox) != HAL_OK)
+  {
+    /* Transmission request Error */
+    return false;
+  }
 
   if (ret == true)
   {
@@ -422,65 +394,7 @@ uint32_t canGetState(uint8_t ch)
 {
   if(ch >= CAN_MAX_CH) return 0;
 
-  return HAL_CAN_GetState(&can_tbl[ch].hcan);
-}
-
-void canAttachRxInterrupt(uint8_t ch, bool (*handler)(uint8_t ch, CanEvent_t evt, can_msg_t *arg))
-{
-  if(ch >= CAN_MAX_CH) return;
-
-  can_tbl[ch].handler = handler;
-}
-
-void canDetachRxInterrupt(uint8_t ch)
-{
-  if(ch >= CAN_MAX_CH) return;
-
-  can_tbl[ch].handler = NULL;
-}
-
-void canRecovery(uint8_t ch)
-{
-  if(ch >= CAN_MAX_CH) return;
-
-  HAL_CAN_Stop(&can_tbl[ch].hcan);
-  HAL_CAN_Start(&can_tbl[ch].hcan);
-
-  can_tbl[ch].recovery_cnt++;
-}
-
-bool canUpdate(void)
-{
-  bool ret = false;
-  can_tbl_t *p_can;
-
-
-  for (int i=0; i<CAN_MAX_CH; i++)
-  {
-    p_can = &can_tbl[i];
-
-
-    switch(p_can->state)
-    {
-      case 0:
-        if (p_can->err_code & CAN_ERR_BUS_OFF)
-        {
-          canRecovery(i);
-          p_can->state = 1;
-          ret = true;
-        }
-        break;
-
-      case 1:
-        if ((p_can->err_code & CAN_ERR_BUS_OFF) == 0)
-        {
-          p_can->state = 0;
-        }
-        break;
-    }
-  }
-
-  return ret;
+  return HAL_CAN_GetState(can_tbl[ch].hcan);
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
@@ -506,31 +420,14 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     rx_buf->length = dlc_len_tbl[(rx_header.DLC >> 16) & 0x0F];
     rx_buf->dlc = canGetDlc(rx_buf->length);
 
-    rx_buf->frame = CAN_CLASSIC;
-
     can_tbl[0].rx_cnt++;
 
-    if (qbufferWrite(&can_tbl[0].q_msg, NULL, 1) != true)
-    {
-      can_tbl[0].q_rx_full_cnt++;
-    }
+    qbufferWrite(&can_tbl[0].q_msg, NULL, 1);
 
-    if( can_tbl[0].handler != NULL )
-    {
-      if ((*can_tbl[0].handler)(0, CAN_EVT_MSG, (void *)rx_buf) == true)
-      {
-        qbufferRead(&can_tbl[0].q_msg, NULL, 1);
-      }
-    }
+    qbufferRead(&can_tbl[0].q_msg, NULL, 1);
   }
 }
 
-void canErrClear(uint8_t ch)
-{
-  if(ch >= CAN_MAX_CH) return;
-
-  can_tbl[ch].err_code = CAN_ERR_NONE;
-}
 
 void canErrPrint(uint8_t ch)
 {
@@ -608,16 +505,6 @@ void canInfoPrint(uint8_t ch)
     case CAN_1M:
       cliPrintf("1M\n");
       break;
-
-    case CAN_2M:
-      cliPrintf("1M\n");
-      break;
-    case CAN_4M:
-      cliPrintf("1M\n");
-      break;
-    case CAN_5M:
-      cliPrintf("1M\n");
-      break;
   }
 
   cliPrintf("mode          : ");
@@ -626,49 +513,10 @@ void canInfoPrint(uint8_t ch)
     case CAN_NORMAL:
       cliPrintf("NORMAL\n");
       break;
-    case CAN_MONITOR:
-      cliPrintf("MONITOR\n");
-      break;
     case CAN_LOOPBACK:
       cliPrintf("LOOPBACK\n");
       break;
   }
-
-  cliPrintf("frame         : ");
-  switch(p_can->frame)
-  {
-    case CAN_CLASSIC:
-      cliPrintf("CAN_CLASSIC\n");
-      break;
-    case CAN_FD_NO_BRS:
-      cliPrintf("CAN_FD_NO_BRS\n");
-      break;
-    case CAN_FD_BRS:
-      cliPrintf("CAN_FD_BRS\n");
-      break;
-  }
-}
-
-void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
-{
-  uint8_t ch = _DEF_CAN1;
-
-  err_int_cnt++;
-
-  if (hcan->ErrorCode > 0)
-  {
-    can_tbl[ch].err_code |= CAN_ERR_ETC;
-  }
-}
-
-void FDCAN1_IT0_IRQHandler(void)
-{
-  HAL_CAN_IRQHandler(&can_tbl[_DEF_CAN1].hcan);
-}
-
-void CAN2_IT0_IRQHandler(void)
-{
-  HAL_CAN_IRQHandler(&can_tbl[_DEF_CAN2].hcan);
 }
 
 void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
@@ -757,12 +605,6 @@ void cliCan(cli_args_t *args)
     for (int i=0; i<CAN_MAX_CH; i++)
     {
       canInfoPrint(i);
-      cliPrintf("q_rx_full_cnt : %d\n", can_tbl[i].q_rx_full_cnt);
-      cliPrintf("q_tx_full_cnt : %d\n", can_tbl[i].q_tx_full_cnt);
-      cliPrintf("fifo_full_cnt : %d\n", can_tbl[i].fifo_full_cnt);
-      cliPrintf("fifo_lost_cnt : %d\n", can_tbl[i].fifo_lost_cnt);
-//      cliPrintf("rx error cnt  : %d\n", canGetRxErrCount(i));
-//      cliPrintf("tx error cnt  : %d\n", canGetTxErrCount(i));
 
       canErrPrint(i);
 
@@ -827,14 +669,13 @@ void cliCan(cli_args_t *args)
       {
         pre_time = millis();
 
-        msg.frame   = CAN_CLASSIC;
         msg.id_type = CAN_EXT;
         msg.dlc     = CAN_DLC_2;
         msg.id      = 0x314;
         msg.length  = 2;
         msg.data[0] = 1;
         msg.data[1] = 2;
-        if (canMsgWrite(_DEF_CAN1, &msg, 10) > 0)
+        if (canMsgWrite(_DEF_CAN1, &msg) > 0)
         {
           index %= 1000;
           cliPrintf("ch %d %03d(T) -> id ", ch, index++);
@@ -873,10 +714,10 @@ void cliCan(cli_args_t *args)
         err_code = can_tbl[ch].err_code;
       }
 
-      if (canUpdate())
-      {
-        cliPrintf("ch %d BusOff Recovery\n", ch);
-      }
+//      if (canUpdate())
+//      {
+//        cliPrintf("ch %d BusOff Recovery\n", ch);
+//      }
 
 
       if (canMsgAvailable(ch))

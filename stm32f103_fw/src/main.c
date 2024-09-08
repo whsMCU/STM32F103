@@ -23,6 +23,8 @@
 void hwInit(void);
 void SystemClock_Config(void);
 
+can_msg_t msg;
+
 uint32_t pre_time = 0;
 
 int main(void)
@@ -75,7 +77,16 @@ void hwInit(void)
   uartInit();
 
   canInit();
-  canOpen(_DEF_CAN1, CAN_LOOPBACK, CAN_CLASSIC, CAN_100K, CAN_100K);
+  canOpen(_DEF_CAN1, CAN_LOOPBACK, CAN_100K);
+
+  msg.id_type = CAN_STD;
+  msg.dlc     = CAN_DLC_2;
+  msg.id      = 0x321;
+  msg.length  = 2;
+  msg.data[0] = 1;
+  msg.data[1] = 2;
+
+  canMsgWrite(_DEF_CAN1, &msg);
 //  uartOpen(_DEF_UART1, 57600);
 //  adcInit();
 //  buttonInit();
