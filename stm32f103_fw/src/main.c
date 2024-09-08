@@ -73,6 +73,9 @@ void hwInit(void)
   tim_Begin(_DEF_TIM3);
   gpioInit();
   uartInit();
+
+  canInit();
+  canOpen(_DEF_CAN1, CAN_LOOPBACK, CAN_CLASSIC, CAN_100K, CAN_100K);
 //  uartOpen(_DEF_UART1, 57600);
 //  adcInit();
 //  buttonInit();

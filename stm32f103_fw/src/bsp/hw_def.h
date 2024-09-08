@@ -27,6 +27,10 @@
 //#define      HW_UART_CH_SWD         _DEF_USB
 //#define      HW_UART_CH_CLI         _DEF_USB
 
+#define _USE_HW_CAN
+#define      HW_CAN_MAX_CH          1
+#define      HW_CAN_MSG_RX_BUF_MAX  16
+
 
 #define _USE_HW_CLI
 #define      HW_CLI_CMD_NAME_MAX    16

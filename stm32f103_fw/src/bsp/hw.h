@@ -13,6 +13,7 @@
 #include "bsp.h"
 #include "gpio.h"
 #include "tim.h"
+#include "can.h"
 #include "uart.h"
 #include "maths.h"
 #include "macros.h"
