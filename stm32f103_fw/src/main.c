@@ -46,6 +46,7 @@ int main(void)
 	  {
 	    pre_time = micros();
 		  gpioPinToggle(LED);
+		  canMsgWrite(_DEF_CAN1, &msg);
 	  }
 
 //    if (uartAvailable(_DEF_UART1) > 0)
@@ -77,7 +78,7 @@ void hwInit(void)
   uartInit();
 
   canInit();
-  canOpen(_DEF_CAN1, CAN_LOOPBACK, CAN_100K);
+  canOpen(_DEF_CAN1, CAN_LOOPBACK, CAN_250K);
 
   msg.id_type = CAN_STD;
   msg.dlc     = CAN_DLC_2;
@@ -120,7 +121,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  //RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;

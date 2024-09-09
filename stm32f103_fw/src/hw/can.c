@@ -25,11 +25,11 @@ typedef struct
 
 const can_baud_cfg_t can_baud_cfg[] =
     {
-        {20, 1, 15, 2}, // 100K, 87.5%
-        {16, 1, 15, 2}, // 125K, 87.5%
-        {9,  1, 13, 2}, // 250K, 87.5%
-        {4,  1, 15, 2}, // 500K, 87.5%
-        {2,  1, 15, 2}, // 1M,   87.5%
+        {20, CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS1_2TQ}, // 100K, 87.5%
+        {16, CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS1_2TQ}, // 125K, 87.5%
+        {9,  CAN_SJW_1TQ, CAN_BS1_13TQ, CAN_BS1_2TQ}, // 250K, 87.5%
+        {4,  CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS1_2TQ}, // 500K, 87.5%
+        {2,  CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS1_2TQ}, // 1M,   87.5%
     };
 
 const can_baud_cfg_t *p_baud   = can_baud_cfg;
@@ -194,7 +194,7 @@ bool canOpen(uint8_t ch, CanMode_t mode, CanBaud_t baud)
       p_can->Init.AutoWakeUp           = DISABLE;
       p_can->Init.ReceiveFifoLocked    = DISABLE;
       p_can->Init.TransmitFifoPriority = DISABLE;
-      p_can->Init.AutoRetransmission   = ENABLE;
+      p_can->Init.AutoRetransmission   = DISABLE;
       p_can->Init.Prescaler            = p_baud[baud].prescaler;
       p_can->Init.SyncJumpWidth        = p_baud[baud].sjw;
       p_can->Init.TimeSeg1             = p_baud[baud].tseg1;
@@ -203,7 +203,7 @@ bool canOpen(uint8_t ch, CanMode_t mode, CanBaud_t baud)
 
       can_tbl[ch].hcan_filter.FilterActivation      = CAN_FILTER_ENABLE;
       can_tbl[ch].hcan_filter.FilterBank            = 0;
-      can_tbl[ch].hcan_filter.FilterFIFOAssignment  = CAN_FILTER_FIFO0;
+      can_tbl[ch].hcan_filter.FilterFIFOAssignment  = CAN_RX_FIFO0;
       can_tbl[ch].hcan_filter.FilterIdHigh          = 0x0000;
       can_tbl[ch].hcan_filter.FilterIdLow           = 0x0000;
       can_tbl[ch].hcan_filter.FilterMaskIdHigh      = 0x0000;
@@ -333,14 +333,14 @@ bool canMsgWrite(uint8_t ch, can_msg_t *p_msg)
       tx_header.IDE = CAN_ID_EXT;
       break;
   }
-  tx_header.StdId              = 0x321;
-  //tx_header.ExtId              = 0x01;
+  tx_header.StdId              = p_msg->id;
+  tx_header.ExtId              = 0x0;
   tx_header.RTR                = CAN_RTR_DATA;
   tx_header.DLC                = dlc_tbl[p_msg->dlc];
   tx_header.TransmitGlobalTime = DISABLE;
 
-  can_tbl[ch].TxData[0] = 0;
-  can_tbl[ch].TxData[1] = 5;
+  can_tbl[ch].TxData[0] = 0xCA;
+  can_tbl[ch].TxData[1] = 0xFE;
 
   if (HAL_CAN_AddTxMessage(p_can, &tx_header, can_tbl[ch].TxData, &can_tbl[ch].TxMailbox) != HAL_OK)
   {
@@ -417,7 +417,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
       rx_buf->id      = rx_header.ExtId;
       rx_buf->id_type = CAN_EXT;
     }
-    rx_buf->length = dlc_len_tbl[(rx_header.DLC >> 16) & 0x0F];
+    rx_buf->length = rx_header.DLC;
     rx_buf->dlc = canGetDlc(rx_buf->length);
 
     can_tbl[0].rx_cnt++;
