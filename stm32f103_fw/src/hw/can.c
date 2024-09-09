@@ -451,59 +451,39 @@ void canInfoPrint(uint8_t ch)
   switch(ch)
   {
     case _DEF_CAN1:
-      cliPrintf("_DEF_CAN1\n");
+      cliPrintf("_DEF_CAN1\r\n");
       break;
     case _DEF_CAN2:
-      cliPrintf("_DEF_CAN2\n");
+      cliPrintf("_DEF_CAN2\r\n");
       break;
   }
 
   cliPrintf("is_open       : ");
   if (p_can->is_open)
-    cliPrintf("true\n");
+    cliPrintf("true\r\n");
   else
-    cliPrintf("false\n");
+    cliPrintf("false\r\n");
 
   cliPrintf("baud          : ");
   switch(p_can->baud)
   {
     case CAN_100K:
-      cliPrintf("100K\n");
+      cliPrintf("100K\r\n");
       break;
     case CAN_125K:
-      cliPrintf("125K\n");
+      cliPrintf("125K\r\n");
       break;
     case CAN_250K:
-      cliPrintf("250\n");
+      cliPrintf("250\r\n");
       break;
     case CAN_500K:
-      cliPrintf("250\n");
+      cliPrintf("250\r\n");
       break;
     case CAN_1M:
-      cliPrintf("1M\n");
+      cliPrintf("1M\r\n");
       break;
 
     default:
-      break;
-  }
-
-  cliPrintf("baud data     : ");
-  switch(p_can->baud)
-  {
-    case CAN_100K:
-      cliPrintf("100K\n");
-      break;
-    case CAN_125K:
-      cliPrintf("125K\n");
-      break;
-    case CAN_250K:
-      cliPrintf("250\n");
-      break;
-    case CAN_500K:
-      cliPrintf("250\n");
-      break;
-    case CAN_1M:
-      cliPrintf("1M\n");
       break;
   }
 
@@ -511,10 +491,10 @@ void canInfoPrint(uint8_t ch)
   switch(p_can->mode)
   {
     case CAN_NORMAL:
-      cliPrintf("NORMAL\n");
+      cliPrintf("NORMAL\r\n");
       break;
     case CAN_LOOPBACK:
-      cliPrintf("LOOPBACK\n");
+      cliPrintf("LOOPBACK\r\n");
       break;
   }
 }

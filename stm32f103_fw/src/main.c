@@ -88,7 +88,7 @@ void hwInit(void)
   msg.data[1] = 2;
 
   canMsgWrite(_DEF_CAN1, &msg);
-//  uartOpen(_DEF_UART1, 57600);
+  uartOpen(_DEF_UART1, 57600);
 //  adcInit();
 //  buttonInit();
 //  flashInit();
