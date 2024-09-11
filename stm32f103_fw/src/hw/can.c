@@ -25,11 +25,11 @@ typedef struct
 
 const can_baud_cfg_t can_baud_cfg[] =
     {
-        {20, CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS1_2TQ}, // 100K, 87.5%
-        {16, CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS1_2TQ}, // 125K, 87.5%
-        {9,  CAN_SJW_1TQ, CAN_BS1_13TQ, CAN_BS1_2TQ}, // 250K, 87.5%
-        {4,  CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS1_2TQ}, // 500K, 87.5%
-        {2,  CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS1_2TQ}, // 1M,   87.5%
+        {20, CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS2_2TQ}, // 100K, 87.5%
+        {18, CAN_SJW_1TQ, CAN_BS1_13TQ, CAN_BS2_2TQ}, // 125K, 87.5%
+        {9,  CAN_SJW_1TQ, CAN_BS1_13TQ, CAN_BS2_2TQ}, // 250K, 87.5%
+        {4,  CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS2_2TQ}, // 500K, 87.5%
+        {2,  CAN_SJW_1TQ, CAN_BS1_15TQ, CAN_BS2_2TQ}, // 1M,   87.5%
     };
 
 const can_baud_cfg_t *p_baud   = can_baud_cfg;
@@ -188,7 +188,7 @@ bool canOpen(uint8_t ch, CanMode_t mode, CanBaud_t baud)
   {
     case _DEF_CAN1:
       p_can->Instance                  = CAN1;
-      p_can->Init.Mode                 = CAN_MODE_LOOPBACK;//mode_tbl[mode];
+      p_can->Init.Mode                 = mode_tbl[mode];
       p_can->Init.TimeTriggeredMode    = DISABLE;
       p_can->Init.AutoBusOff           = DISABLE;
       p_can->Init.AutoWakeUp           = DISABLE;

@@ -78,7 +78,7 @@ void hwInit(void)
   uartInit();
 
   canInit();
-  canOpen(_DEF_CAN1, CAN_LOOPBACK, CAN_250K);
+  canOpen(_DEF_CAN1, CAN_NORMAL, CAN_500K);
 
   msg.id_type = CAN_STD;
   msg.dlc     = CAN_DLC_2;
@@ -88,7 +88,7 @@ void hwInit(void)
   msg.data[1] = 2;
 
   canMsgWrite(_DEF_CAN1, &msg);
-  uartOpen(_DEF_UART1, 57600);
+//  uartOpen(_DEF_UART1, 57600);
 //  adcInit();
 //  buttonInit();
 //  flashInit();
