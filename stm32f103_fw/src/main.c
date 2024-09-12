@@ -102,7 +102,17 @@ void hwInit(void)
 //  }
 
   cliOpen(_DEF_UART1, 115200);
-//  uartOpen(_DEF_UART3, 115200);
+  lcdInit();
+
+  ssd1306_SetCursor(0, 0);
+  ssd1306_WriteString("Hello", Font_11x18, White);
+  ssd1306_UpdateScreen();
+  HAL_Delay(1000);
+
+  ssd1306_SetCursor(10, 0);
+  ssd1306_WriteString("World", Font_11x18, White);
+  ssd1306_UpdateScreen();
+  HAL_Delay(1000);
 }
 
 /**

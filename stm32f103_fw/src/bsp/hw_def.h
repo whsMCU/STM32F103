@@ -31,6 +31,9 @@
 #define      HW_CAN_MAX_CH          1
 #define      HW_CAN_MSG_RX_BUF_MAX  16
 
+#define _USE_HW_I2C
+#define      HW_I2C_MAX_CH          1
+
 
 #define _USE_HW_CLI
 #define      HW_CLI_CMD_NAME_MAX    16
@@ -44,6 +47,27 @@
 //#define _USE_HW_CLI_GUI
 //#define      HW_CLI_GUI_WIDTH       80
 //#define      HW_CLI_GUI_HEIGHT      24
+
+#define _USE_HW_LCD
+#define      HW_LCD_MODEL           1
+#if HW_LCD_MODEL == 0
+#define _USE_HW_ST7735
+#define      HW_ST7735_MODEL        0
+#define      HW_LCD_WIDTH           160
+#define      HW_LCD_HEIGHT          80
+#endif
+#if HW_LCD_MODEL == 1
+#define _USE_HW_SSD1306
+#define      HW_SSD1306_MODEL       0
+#define      HW_LCD_WIDTH           1
+#define      HW_LCD_HEIGHT          1
+#endif
+#if HW_LCD_MODEL == 2
+#define _USE_HW_ST7735
+#define      HW_ST7735_MODEL        1
+#define      HW_LCD_WIDTH           160
+#define      HW_LCD_HEIGHT          128
+#endif
 
 
 
