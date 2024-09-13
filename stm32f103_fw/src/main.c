@@ -88,18 +88,6 @@ void hwInit(void)
   msg.data[1] = 2;
 
   canMsgWrite(_DEF_CAN1, &msg);
-//  uartOpen(_DEF_UART1, 57600);
-//  adcInit();
-//  buttonInit();
-//  flashInit();
-//  MX_DMA_Init();
-
-//  spiInit();
-
-//  if (sdInit() == true)
-//  {
-//    fatfsInit();
-//  }
 
   cliOpen(_DEF_UART1, 115200);
   lcdInit();
@@ -109,7 +97,7 @@ void hwInit(void)
   ssd1306_UpdateScreen();
   HAL_Delay(1000);
 
-  ssd1306_SetCursor(10, 0);
+  ssd1306_SetCursor(64, 0);
   ssd1306_WriteString("World", Font_11x18, White);
   ssd1306_UpdateScreen();
   HAL_Delay(1000);

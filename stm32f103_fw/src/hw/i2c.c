@@ -57,7 +57,6 @@ bool i2cInit(void)
 {
   uint32_t i;
 
-
   for (i=0; i<I2C_MAX_CH; i++)
   {
     i2c_timeout[i] = 10;
@@ -105,18 +104,19 @@ bool i2cBegin(uint8_t ch, uint32_t freq_khz)
       p_handle->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
       p_handle->Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
 
-      i2cReset(ch);
+      //i2cReset(ch);
 
-      HAL_I2C_DeInit(p_handle);
-
-      /* DMA1_Channel6_IRQn interrupt configuration */
-      HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
-      HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+      //HAL_I2C_DeInit(p_handle);
 
       if(HAL_I2C_Init(p_handle) != HAL_OK)
       {
         ret = false;
       }
+
+      /* DMA1_Channel6_IRQn interrupt configuration */
+      HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+      HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+
       ret = true;
       is_begin[ch] = true;
       break;
